@@ -29,7 +29,7 @@ class DocteurAdmin(admin.ModelAdmin):
 
 # 3. Configuration pour PATIENT
 class PatientAdmin(admin.ModelAdmin):
-    list_display = ('get_nom', 'get_prenom', 'cin', 'date_naissance')
+    list_display = ('get_nom', 'get_prenom', 'cin','adresse', 'date_naissance')
     search_fields = ('user__last_name', 'user__first_name', 'cin')
     list_filter = ('user__is_active',) # Filtre utile sur le côté
 
