@@ -11,9 +11,9 @@ class User(AbstractUser):
     """
     class Role(models.TextChoices):
         ADMIN = "ADMIN", "Administrateur"         # Superuser / Admin technique
-        SECRETAIRE = "SECRETAIRE", "Secrétaire"   # Gestion administrative 
-        DOCTEUR = "DOCTEUR", "Docteur"            # Gestion médicale 
-        PATIENT = "PATIENT", "Patient"            # Bénéficiaire des soins 
+        SECRETAIRE = "SECRETAIRE", "Secrétaire"   # Gestion administrative [cite: 33, 34]
+        DOCTEUR = "DOCTEUR", "Docteur"            # Gestion médicale [cite: 32]
+        PATIENT = "PATIENT", "Patient"            # Bénéficiaire des soins [cite: 35]
 
     role = models.CharField(
         max_length=20, 
@@ -22,6 +22,8 @@ class User(AbstractUser):
         verbose_name="Rôle utilisateur"
     )
 
+    # Vous pouvez ajouter ici une photo de profil commune si nécessaire
+    # photo = models.ImageField(upload_to='avatars/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.get_full_name()} ({self.get_role_display()})"
@@ -30,7 +32,7 @@ class User(AbstractUser):
 class Docteur(models.Model):
     """
     Profil métier pour le Médecin.
-    Source: Dictionnaire de données 
+    [cite_start]Source: Dictionnaire de données [cite: 67]
     """
     user = models.OneToOneField(
         User, 
@@ -46,6 +48,10 @@ class Docteur(models.Model):
         default="Généraliste" # Valeur par défaut utile
     )
 
+    class Meta:
+        verbose_name = "Médecin"
+        verbose_name_plural = "Médecins"
+
     def __str__(self):
         return f"Dr. {self.user.last_name} {self.user.first_name} - {self.specialite}"
 
@@ -53,7 +59,7 @@ class Docteur(models.Model):
 class Patient(models.Model):
     """
     Profil métier pour le Patient.
-    Contient les données administratives requises par le RG1 et le dictionnaire[cite: 62].
+    [cite_start]Contient les données administratives requises par le RG1 [cite: 42] [cite_start]et le dictionnaire[cite: 62].
     """
     user = models.OneToOneField(
         User, 
@@ -81,22 +87,23 @@ class Patient(models.Model):
     date_naissance = models.DateField(
         verbose_name="Date de naissance"
     )
-    # TODO
+
     # [cite_start]RG2 : Un patient peut être affilié à une mutuelle [cite: 43]
     # Utilisation d'une "Lazy Reference" (chaîne de caractères) pour pointer vers l'app 'dossiers'
     # Cela évite l'erreur "ImportError: cannot import name..."
-    #mutuelle = models.ForeignKey(
-    #    'dossiers.Mutuelle', 
-    #    on_delete=models.SET_NULL, 
-    #    null=True, 
-    #    blank=True,
-    #    related_name='affilies',
-    #    verbose_name="Organisme de Mutuelle" )
+    mutuelle = models.ForeignKey(
+        'dossiers.Mutuelle', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='affilies',
+        verbose_name="Organisme de Mutuelle"
+    )
 
-    #class Meta:
-    #    verbose_name = "Dossier Administratif Patient"
-    #    verbose_name_plural = "Dossiers Patients"
-    #    ordering = ['user__last_name']
+    class Meta:
+        verbose_name = "Dossier Administratif Patient"
+        verbose_name_plural = "Dossiers Patients"
+        ordering = ['user__last_name']
 
     def __str__(self):
         return f"{self.user.last_name} {self.user.first_name} (CIN: {self.cin})"
