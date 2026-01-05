@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Connexion - Espace Sécurisé{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Surcharge le background juste pour cette page */
+    body {
+        background: linear-gradient(135deg, #0d6efd 0%, #00d2ff 100%);
+        height: 100vh;
+    }
+    .login-card {
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+    .login-header {
+        background: #fff;
+        padding: 2rem;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center h-100">
+    <div class="col-md-5 col-lg-4">
+        <div class="card login-card border-0">
+            <div class="login-header">
+                <div class="mb-3">
+                    <i class="fa-solid fa-user-doctor fa-3x text-primary"></i>
+                </div>
+                <h4 class="fw-bold text-dark">Espace Sécurisé</h4>
+                <p class="text-muted small">Connectez-vous pour accéder à votre espace</p>
+            </div>
+            
+            <div class="card-body p-4 bg-white">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger d-flex align-items-center" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i> Identifiants incorrects
+                        </div>
+                    {% endif %}
+
+                    <div class="form-floating mb-3">
+                        <input type="text" name="username" class="form-control" id="floatingInput" placeholder="Nom d'utilisateur" required>
+                        <label for="floatingInput">Nom d'utilisateur</label>
+                    </div>
+
+                    <div class="form-floating mb-4">
+                        <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Mot de passe" required>
+                        <label for="floatingPassword">Mot de passe</label>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                            Se connecter
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-light text-center py-3">
+                <small class="text-muted">Problème d'accès ? Contactez l'administrateur.</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
