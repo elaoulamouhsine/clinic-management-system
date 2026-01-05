@@ -1,103 +1,127 @@
-{% extends 'base.html' %}
-
-{% block title %}Tableau de Bord Médecin{% endblock %}
-
+{% extends 'base.html' %} {% block title %}Tableau de Bord Médecin{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="fw-bold text-dark">Bonjour, Dr. {{ user.last_name }}</h2>
-        <p class="text-muted">Voici votre activité pour aujourd'hui.</p>
-    </div>
-    <button class="btn btn-primary shadow-sm"><i class="fas fa-plus me-2"></i>Nouvelle Consultation</button>
+  <div>
+    <h2 class="fw-bold text-dark">Bonjour, Dr. {{ user.last_name }}</h2>
+    <p class="text-muted">Voici votre activité pour aujourd'hui.</p>
+  </div>
+  <button class="btn btn-primary shadow-sm">
+    <i class="fas fa-plus me-2"></i>Nouvelle Consultation
+  </button>
 </div>
 
 <div class="row g-4 mb-5">
-    <div class="col-md-4">
-        <div class="card hover-card border-0 shadow-sm h-100">
-            <div class="card-body d-flex align-items-center">
-                <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
-                    <i class="fas fa-calendar-check fa-2x text-primary"></i>
-                </div>
-                <div>
-                    <h5 class="text-muted mb-0">RDV Aujourd'hui</h5>
-                    <h2 class="fw-bold mb-0">8</h2>
-                </div>
-            </div>
+  <div class="col-md-4">
+    <div class="card hover-card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center">
+        <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+          <i class="fas fa-calendar-check fa-2x text-primary"></i>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card hover-card border-0 shadow-sm h-100">
-            <div class="card-body d-flex align-items-center">
-                <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
-                    <i class="fas fa-user-injured fa-2x text-success"></i>
-                </div>
-                <div>
-                    <h5 class="text-muted mb-0">Patients en attente</h5>
-                    <h2 class="fw-bold mb-0">3</h2>
-                </div>
-            </div>
+        <div>
+          <h5 class="text-muted mb-0">RDV Aujourd'hui</h5>
+          <h2 class="fw-bold mb-0">{{ count_today }}</h2>
         </div>
+      </div>
     </div>
-    <div class="col-md-4">
-        <div class="card hover-card border-0 shadow-sm h-100">
-            <div class="card-body d-flex align-items-center">
-                <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
-                    <i class="fas fa-file-invoice-dollar fa-2x text-warning"></i>
-                </div>
-                <div>
-                    <h5 class="text-muted mb-0">Revenus du jour</h5>
-                    <h2 class="fw-bold mb-0">2400 DHS</h2>
-                </div>
-            </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card hover-card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center">
+        <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
+          <i class="fas fa-user-injured fa-2x text-success"></i>
         </div>
+        <div>
+          <h5 class="text-muted mb-0">Patients en attente</h5>
+          <h2 class="fw-bold mb-0">{{ count_waiting }}</h2>
+        </div>
+      </div>
     </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card hover-card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center">
+        <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
+          <i class="fas fa-file-invoice-dollar fa-2x text-warning"></i>
+        </div>
+        <div>
+          <h5 class="text-muted mb-0">Revenus du jour</h5>
+          <h2 class="fw-bold mb-0">2400 DHS</h2>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-        <h5 class="fw-bold mb-0"><i class="fas fa-clock me-2 text-primary"></i>Prochains Rendez-vous</h5>
-        <a href="#" class="btn btn-sm btn-outline-primary">Voir tout</a>
+  <div
+    class="card-header bg-white py-3 d-flex justify-content-between align-items-center"
+  >
+    <h5 class="fw-bold mb-0">
+      <i class="fas fa-clock me-2 text-primary"></i>Prochains Rendez-vous
+    </h5>
+    <a href="#" class="btn btn-sm btn-outline-primary">Voir tout</a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="ps-4">Heure</th>
+            <th>Patient</th>
+            <th>Type</th>
+            <th>Statut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rdv in rdvs %}
+          <tr>
+            <td class="ps-4 fw-bold">{{ rdv.heure|time:"H:i" }}</td>
+
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="bg-light rounded-circle p-2 me-2">
+                  <i class="fas fa-user"></i>
+                </div>
+                <div>
+                  {{ rdv.patient.user.last_name }} {{ rdv.patient.user.first_name }}
+                  <br />
+                  <small class="text-muted">CIN: {{ rdv.patient.cin }}</small>
+                </div>
+              </div>
+            </td>
+
+            <td><span class="badge bg-info text-dark">Consultation</span></td>
+
+            <td>
+              {% if rdv.statut == 'EN_ATTENTE' %}
+              <span class="badge bg-warning text-dark">En attente</span>
+              {% elif rdv.statut == 'CONFIRME' %}
+              <span class="badge bg-success">Confirmé</span>
+              {% elif rdv.statut == 'TERMINE' %}
+              <span class="badge bg-secondary">Terminé</span>
+              {% elif rdv.statut == 'ANNULE' %}
+              <span class="badge bg-danger">Annulé</span>
+              {% endif %}
+            </td>
+
+            <td>
+              <a href="#" class="btn btn-sm btn-primary rounded-pill"
+                >Démarrer</a
+              >
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center py-4 text-muted">
+              <i class="fas fa-mug-hot mb-2"></i><br />Aucun rendez-vous prévu
+              pour aujourd'hui.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="ps-4">Heure</th>
-                        <th>Patient</th>
-                        <th>Type</th>
-                        <th>Statut</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="ps-4 fw-bold">09:00</td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-light rounded-circle p-2 me-2"><i class="fas fa-user"></i></div>
-                                <div>M. Alami Ahmed<br><small class="text-muted">CIN: A12345</small></div>
-                            </div>
-                        </td>
-                        <td><span class="badge bg-info text-dark">Consultation</span></td>
-                        <td><span class="badge bg-warning">En attente</span></td>
-                        <td><button class="btn btn-sm btn-primary rounded-pill">Démarrer</button></td>
-                    </tr>
-                    <tr>
-                        <td class="ps-4 fw-bold">10:30</td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-light rounded-circle p-2 me-2"><i class="fas fa-user"></i></div>
-                                <div>Mme. Benani Sarah</div>
-                            </div>
-                        </td>
-                        <td><span class="badge bg-secondary">Contrôle</span></td>
-                        <td><span class="text-muted">Confirmé</span></td>
-                        <td><button class="btn btn-sm btn-outline-secondary rounded-pill">Détails</button></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+  </div>
 </div>
 {% endblock %}

@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.core.exceptions import ValidationError # <--- 1. Import nécessaire
 class RDV(models.Model):
     """
     Modèle représentant un Rendez-vous médical.
@@ -50,19 +50,40 @@ class RDV(models.Model):
     # Horodatage technique (utile pour le tri)
     date_creation = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
+    # --- VALIDATION LOGIQUE (Pour afficher un beau message d'erreur) ---
+    def clean(self):
+        # On appelle la validation parent
+        super().clean()
+        
+        # Vérification : Est-ce que ce patient a déjà un RDV à cette date et heure ?
+        # .exclude(pk=self.pk) est CRUCIAL : il permet de modifier un RDV existant sans qu'il se bloque lui-même.
+        conflit = RDV.objects.filter(
+            patient=self.patient, 
+            date=self.date, 
+            heure=self.heure
+        ).exclude(pk=self.pk)
+
+        if conflit.exists():
+            raise ValidationError(f"Le patient {self.patient.user.last_name} a déjà un rendez-vous prévu ce jour-là à cette heure.")
+
+class Meta:
         verbose_name = "Rendez-vous"
         verbose_name_plural = "Rendez-vous"
-        ordering = ['-date', '-heure'] # Trie par défaut du plus récent au plus ancien
+        ordering = ['-date', '-heure']
         
-        # CONTRAINTE D'UNICITÉ (Bonus Pro)
-        # Empêche de créer deux RDV pour le même docteur à la même heure
+        # CONTRAINTES DE BASE DE DONNÉES (Le blindage ultime)
         constraints = [
+            # 1. Contrainte Docteur (Déjà existante) : Un docteur ne peut pas avoir 2 RDV en même temps
             models.UniqueConstraint(
                 fields=['docteur', 'date', 'heure'], 
                 name='unique_rdv_creneau_docteur'
+            ),
+            # 2. Contrainte Patient (NOUVELLE) : Un patient ne peut pas avoir 2 RDV en même temps
+            models.UniqueConstraint(
+                fields=['patient', 'date', 'heure'], 
+                name='unique_rdv_creneau_patient'
             )
         ]
 
-    def __str__(self):
+def __str__(self):
         return f"RDV le {self.date} à {self.heure} - Dr. {self.docteur.user.last_name}"
