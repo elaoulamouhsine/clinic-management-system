@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Nouveau Patient{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-primary text-white py-3 rounded-top-4 d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Inscrire un nouveau patient</h4>
+                    <a href="{% url 'secretary_dashboard' %}" class="btn btn-outline-light btn-sm rounded-pill">
+                        <i class="fas fa-arrow-left me-1"></i>Retour
+                    </a>
+                </div>
+
+                <div class="card-body p-5">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row g-5">
+                            <div class="col-md-6 border-end">
+                                <h5 class="text-primary fw-bold mb-4">1. Informations de Connexion</h5>
+                                
+                                <div class="mb-3">
+                                    {{ user_form.username.label_tag }}
+                                    {{ user_form.username }}
+                                    <small class="text-muted">{{ user_form.username.help_text }}</small>
+                                    <div class="text-danger small">{{ user_form.username.errors }}</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        {{ user_form.last_name.label_tag }}
+                                        {{ user_form.last_name }}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        {{ user_form.first_name.label_tag }}
+                                        {{ user_form.first_name }}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ user_form.email.label_tag }}
+                                    {{ user_form.email }}
+                                </div>
+
+                                <div class="mb-3 bg-light p-3 rounded">
+                                    {{ user_form.password.label_tag }}
+                                    {{ user_form.password }}
+                                    <small class="text-muted d-block mt-1"><i class="fas fa-key me-1"></i>Définissez un mot de passe initial pour le patient.</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h5 class="text-success fw-bold mb-4">2. Dossier Administratif</h5>
+
+                                <div class="mb-3">
+                                    {{ patient_form.cin.label_tag }}
+                                    {{ patient_form.cin }}
+                                    <div class="text-danger small">{{ patient_form.cin.errors }}</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ patient_form.date_naissance.label_tag }}
+                                    {{ patient_form.date_naissance }}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ patient_form.mutuelle.label_tag }}
+                                    {{ patient_form.mutuelle }}
+                                    <small class="text-muted">Laisser vide si aucune mutuelle.</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ patient_form.adresse.label_tag }}
+                                    {{ patient_form.adresse }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                                <i class="fas fa-save me-2"></i>Enregistrer le Patient
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

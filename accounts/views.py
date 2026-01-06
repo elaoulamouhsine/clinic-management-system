@@ -1,7 +1,8 @@
-from django.shortcuts import redirect
-from django.views.generic import TemplateView, View
+from django.shortcuts import redirect, render
+from django.views.generic import TemplateView, View, ListView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import User
+from .forms import UserRegistrationForm, PatientRegistrationForm
 from django.contrib import messages  
 from django.utils import timezone
 from planning.models import RDV
@@ -128,3 +129,64 @@ class SecretaryDashboardView(LoginRequiredMixin, SecretaryRequiredMixin, Templat
         return context
 class HomeView(TemplateView):
     template_name = 'home.html'
+
+class AddPatientView(LoginRequiredMixin, UserPassesTestMixin, View):
+    template_name = 'accounts/add_patient.html'
+
+    # 1. Sécurité : Test pour vérifier si c'est une secrétaire
+    def test_func(self):
+        return self.request.user.role == User.Role.SECRETAIRE
+
+    def handle_no_permission(self):
+        # Redirection si l'utilisateur n'est pas secrétaire
+        messages.error(self.request, "Accès réservé au secrétariat.")
+        return redirect('dispatch_dashboard')
+
+    # 2. Méthode GET : Affichage des formulaires vides
+    def get(self, request, *args, **kwargs):
+        context = {
+            'user_form': UserRegistrationForm(),
+            'patient_form': PatientRegistrationForm()
+        }
+        return render(request, self.template_name, context)
+
+    # 3. Méthode POST : Traitement des données soumises
+    def post(self, request, *args, **kwargs):
+        user_form = UserRegistrationForm(request.POST)
+        patient_form = PatientRegistrationForm(request.POST)
+
+        # On vérifie si les DEUX formulaires sont valides
+        if user_form.is_valid() and patient_form.is_valid():
+            
+            # A. Création du User
+            user = user_form.save(commit=False)
+            user.set_password(user_form.cleaned_data['password'])
+            user.role = User.Role.PATIENT
+            user.save()
+
+            # B. Création du Patient lié
+            patient = patient_form.save(commit=False)
+            patient.user = user # Lien crucial
+            patient.save()
+
+            messages.success(request, f"Dossier créé pour {user.last_name} {user.first_name}")
+            return redirect('secretary_dashboard')
+        
+        # C. Si erreur : On réaffiche la page avec les erreurs (Django le fait auto grâce aux instances form)
+        context = {
+            'user_form': user_form,
+            'patient_form': patient_form
+        }
+        return render(request, self.template_name, context)
+    
+class PatientHistoryView(LoginRequiredMixin, PatientRequiredMixin, ListView):
+    model = RDV
+    template_name = 'accounts/patient_history.html'
+    context_object_name = 'rdvs'
+    paginate_by = 10  # Affiche 10 RDV par page (gère la pagination auto)
+
+    def get_queryset(self):
+        # On filtre : Uniquement les RDV du patient connecté
+        return RDV.objects.filter(
+            patient__user=self.request.user
+        ).order_by('-date', '-heure')

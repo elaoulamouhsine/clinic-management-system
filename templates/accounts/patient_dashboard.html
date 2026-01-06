@@ -29,7 +29,7 @@
           </div>
           <i class="fas fa-calendar-alt fa-3x opacity-50"></i>
         </div>
-        <h3 class="fw-bold mb-0">{{ prochain_rdv.date|date:"l d F Y" }}</h3>
+        <h3 class="fw-bold mb-0">{{ prochain_rdv.date|date:"l d F Y"|capfirst }}</h3>
         <p class="fs-5 mb-0">
           à {{ prochain_rdv.heure|time:"H:i" }} avec Dr. {{prochain_rdv.docteur.user.last_name }}
         </p>
@@ -44,28 +44,21 @@
     </div>
   </div>
 
-  <div class="col-md-6 col-lg-4">
-    <div class="card hover-card border-0 shadow-sm h-100">
-      <div class="card-body p-4 d-flex align-items-center">
-        <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
-          <i class="fas fa-file-medical-alt fa-2x text-success"></i>
+<div class="col-md-6 col-lg-4">
+    <a href="{% url 'patient_detail' user.profile_patient.pk %}" class="text-decoration-none">
+        
+        <div class="card hover-card border-0 shadow-sm h-100 cursor-pointer">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
+                    <i class="fas fa-file-medical-alt fa-2x text-success"></i>
+                </div>
+                <div>
+                    <h5 class="text-muted mb-1">Mon Dossier Médical</h5>
+                </div>
+            </div>
         </div>
-        <div>
-          <h5 class="text-muted mb-1">Mon Dossier Médical</h5>
-          <div class="d-flex gap-2">
-            <span
-              class="badge bg-success bg-opacity-10 text-success border border-success"
-              >Vaccins à jour</span
-            >
-            <span
-              class="badge bg-warning bg-opacity-10 text-warning border border-warning"
-              >1 Allergie signalée</span
-            >
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+        
+    </a> </div>
 
   <div class="col-md-6 col-lg-4">
     <div class="card hover-card border-0 shadow-sm h-100">
@@ -92,7 +85,7 @@
         <h5 class="fw-bold mb-0">
           <i class="fas fa-history me-2 text-primary"></i>Mes Rendez-vous
         </h5>
-        <a href="#" class="btn btn-sm btn-outline-primary rounded-pill"
+        <a href="{% url 'patient_history' %}" class="btn btn-sm btn-outline-primary rounded-pill"
           >Voir tout l'historique</a
         >
       </div>
@@ -192,13 +185,13 @@
             class="list-group-item px-0 d-flex justify-content-between align-items-center bg-transparent"
           >
             <span class="text-muted">CIN</span>
-            <span class="fw-bold">A123456</span>
+            <span class="fw-bold">{{ user.profile_patient.cin }}</span>
           </li>
           <li
             class="list-group-item px-0 d-flex justify-content-between align-items-center bg-transparent"
           >
             <span class="text-muted">Mutuelle</span>
-            <span class="badge bg-info text-dark">CNOPS (80%)</span>
+            <span class="badge bg-info text-dark">{{ user.profile_patient.mutuelle.nom_orga }} {{ user.profile_patient.mutuelle.taux_remise }}%</span>
           </li>
         </ul>
         <div class="d-grid mt-3">

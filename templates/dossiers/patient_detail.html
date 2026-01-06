@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Dossier Médical - {{ patient.user.last_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="row g-0">
+                <div class="col-md-3 bg-primary text-white p-4 text-center d-flex flex-column justify-content-center align-items-center">
+                    <div class="bg-white rounded-circle p-2 mb-3 shadow-sm" style="width: 100px; height: 100px;">
+                        <i class="fas fa-user-injured fa-3x text-primary mt-2"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">{{ patient.user.last_name|upper }}</h3>
+                    <h4 class="h5">{{ patient.user.first_name }}</h4>
+                    <span class="badge bg-white text-primary mt-2 rounded-pill px-3">Patient #{{ patient.id }}</span>
+                </div>
+                
+                <div class="col-md-9 p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <h4 class="fw-bold text-muted"><i class="fas fa-id-card me-2"></i>Fiche Administrative</h4>
+                        <a href="#" class="btn btn-outline-primary btn-sm rounded-pill"><i class="fas fa-pen me-2"></i>Modifier</a>
+                    </div>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <small class="text-muted d-block text-uppercase">CIN</small>
+                            <span class="fw-bold fs-5">{{ patient.cin }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block text-uppercase">Âge & Naissance</small>
+                            <span class="fw-bold fs-5">{{ age }} ans</span>
+                            <div class="small text-muted">{{ patient.date_naissance|date:"d/m/Y" }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block text-uppercase">Mutuelle</small>
+                            {% if patient.mutuelle %}
+                                <span class="badge bg-info text-dark fs-6">{{ patient.mutuelle.nom_orga }}</span>
+                                <div class="small text-muted">Couverture : {{ patient.mutuelle.taux_remise }}%</div>
+                            {% else %}
+                                <span class="badge bg-secondary">Aucune mutuelle</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        
+        <div class="col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-header bg-danger text-white py-3 rounded-top-4">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-allergies me-2"></i>Allergies</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for ant in allergies %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                                <div>
+                                    <span class="fw-bold text-danger">{{ ant.allergie.nom_alrg }}</span>
+                                    {% if ant.commentaire %}
+                                        <br><small class="text-muted fst-italic">"{{ ant.commentaire }}"</small>
+                                    {% endif %}
+                                </div>
+                                {% if ant.intensite == 'Grave' %}
+                                    <span class="badge bg-danger rounded-pill">Sévère</span>
+                                {% elif ant.intensite == 'Moyenne' %}
+                                    <span class="badge bg-warning text-dark rounded-pill">Moyenne</span>
+                                {% else %}
+                                    <span class="badge bg-light text-muted border rounded-pill">Faible</span>
+                                {% endif %}
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item text-center text-muted py-4">Aucune allergie signalée.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-header bg-primary text-white py-3 rounded-top-4">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-heartbeat me-2"></i>Maladies</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for ant in maladies %}
+                            <li class="list-group-item px-4 py-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold text-dark">{{ ant.maladie.nom_mal }}</span>
+                                    {% if ant.est_chronique %}
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary rounded-pill">Chronique</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">Ponctuelle</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted"><i class="far fa-calendar-alt me-1"></i>Diag: {{ ant.date_diagnostic|date:"d M Y" }}</small>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item text-center text-muted py-4">Aucun antécédent majeur.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-header bg-success text-white py-3 rounded-top-4">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-syringe me-2"></i>Vaccinations</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for vac in vaccinations %}
+                            <li class="list-group-item px-4 py-3">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold text-success">{{ vac.vaccin.nom_vac }}</span>
+                                    <span class="small text-muted">{{ vac.date_injection|date:"d/m/Y" }}</span>
+                                </div>
+                                {% if vac.observation %}
+                                    <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i>{{ vac.observation }}</small>
+                                {% endif %}
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item text-center text-muted py-4">Carnet de vaccination vide.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-secondary"><i class="fas fa-history me-2"></i>Historique des Consultations</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Date</th>
+                        <th>Médecin</th>
+                        <th>Motif</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rdv in historique_rdv %}
+                    <tr>
+                        <td class="ps-4 fw-bold">{{ rdv.date|date:"d M Y" }} <small class="text-muted ms-1">{{ rdv.heure|time:"H:i" }}</small></td>
+                        <td>Dr. {{ rdv.docteur.user.last_name }}</td>
+                        <td class="text-muted">{{ rdv.motif|default:"Check-up standard"|truncatechars:30 }}</td>
+                        <td>
+                            {% if rdv.statut == 'TERMINE' %}
+                                <span class="badge bg-success bg-opacity-10 text-success">Terminé</span>
+                            {% elif rdv.statut == 'ANNULE' %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger">Annulé</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">{{ rdv.get_statut_display }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">Aucun historique de rendez-vous.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

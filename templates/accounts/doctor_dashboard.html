@@ -75,42 +75,44 @@
         </thead>
         <tbody>
           {% for rdv in rdvs %}
-          <tr>
-            <td class="ps-4 fw-bold">{{ rdv.heure|time:"H:i" }}</td>
+<tr>
+  <td class="ps-4 fw-bold">{{ rdv.heure|time:"H:i" }}</td>
 
-            <td>
-              <div class="d-flex align-items-center">
-                <div class="bg-light rounded-circle p-2 me-2">
-                  <i class="fas fa-user"></i>
-                </div>
-                <div>
-                  {{ rdv.patient.user.last_name }} {{ rdv.patient.user.first_name }}
-                  <br />
-                  <small class="text-muted">CIN: {{ rdv.patient.cin }}</small>
-                </div>
-              </div>
-            </td>
+  <td>
+    <div class="d-flex align-items-center">
+      <div class="bg-light rounded-circle p-2 me-2">
+        <i class="fas fa-user"></i>
+      </div>
+      <div>
+        <a href="{% url 'patient_detail' rdv.patient.pk %}" class="text-decoration-none text-dark">
+            <span class="fw-bold hover-primary">
+                {{ rdv.patient.user.last_name|upper }} {{ rdv.patient.user.first_name }}
+            </span>
+        </a>
+        <br />
+        <small class="text-muted">CIN: {{ rdv.patient.cin }}</small>
+      </div>
+    </div>
+  </td>
 
-            <td><span class="badge bg-info text-dark">Consultation</span></td>
+  <td><span class="badge bg-info text-dark">Consultation</span></td>
 
-            <td>
-              {% if rdv.statut == 'EN_ATTENTE' %}
-              <span class="badge bg-warning text-dark">En attente</span>
-              {% elif rdv.statut == 'CONFIRME' %}
-              <span class="badge bg-success">Confirmé</span>
-              {% elif rdv.statut == 'TERMINE' %}
-              <span class="badge bg-secondary">Terminé</span>
-              {% elif rdv.statut == 'ANNULE' %}
-              <span class="badge bg-danger">Annulé</span>
-              {% endif %}
-            </td>
+  <td>
+    {% if rdv.statut == 'EN_ATTENTE' %}
+    <span class="badge bg-warning text-dark">En attente</span>
+    {% elif rdv.statut == 'CONFIRME' %}
+    <span class="badge bg-success">Confirmé</span>
+    {% elif rdv.statut == 'TERMINE' %}
+    <span class="badge bg-secondary">Terminé</span>
+    {% elif rdv.statut == 'ANNULE' %}
+    <span class="badge bg-danger">Annulé</span>
+    {% endif %}
+  </td>
 
-            <td>
-              <a href="#" class="btn btn-sm btn-primary rounded-pill"
-                >Démarrer</a
-              >
-            </td>
-          </tr>
+  <td>
+    <a href="#" class="btn btn-sm btn-primary rounded-pill">Démarrer</a>
+  </td>
+</tr>
           {% empty %}
           <tr>
             <td colspan="5" class="text-center py-4 text-muted">
