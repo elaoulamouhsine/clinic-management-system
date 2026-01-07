@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Prendre RDV{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Nouvelle demande de rendez-vous</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Médecin</label>
+                            {{ form.docteur }}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label">Date</label>
+                                {{ form.date }}
+                                <div class="text-danger small">{{ form.date.errors }}</div>
+                            </div>
+                            <div class="col">
+                                <label class="form-label">Heure</label>
+                                {{ form.heure }}
+                                <div class="text-danger small">{{ form.heure.errors }}</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Motif</label>
+                            {{ form.motif }}
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">Envoyer la demande</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

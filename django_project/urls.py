@@ -22,4 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('accounts.urls')), 
     path('dossier/<int:pk>/', PatientDetailView.as_view(), name='patient_detail'),
+    path('rdv/', include('planning.urls'))
 ]

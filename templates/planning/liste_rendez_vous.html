@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3">Planning des Rendez-vous</h2>
+        <a href="#" class="btn btn-success shadow-sm">
+            <i class="fas fa-plus"></i> Nouveau RDV
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body bg-light">
+            <form method="GET" class="row g-3 align-items-end">
+                
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Date</label>
+                    <input type="date" name="date" class="form-control" value="{{ selected_date }}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Patient</label>
+                    <select name="patient" class="form-select">
+                        <option value="">-- Tous les patients --</option>
+                        {% for p in tous_patients %}
+  <option value="{{ p.id }}" {% if selected_patient == p.id %}selected{% endif %}>
+    {{ p.user.last_name }} {{ p.user.first_name }}
+</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Docteur</label>
+                    <select name="docteur" class="form-select">
+                        <option value="">-- Tous les médecins --</option>
+                        {% for doc in tous_docteurs %}
+                            <option value="{{ doc.id }}" {% if selected_docteur == doc.id %}selected{% endif %}>
+    Dr. {{ doc.user.last_name }}
+</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100 mb-2">
+                        <i class="fas fa-filter"></i> Filtrer
+                    </button>
+                    <a href="{% url 'liste_rendez_vous' %}" class="btn btn-outline-secondary w-100">
+                        Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive shadow rounded">
+        <table class="table table-hover align-middle mb-0 bg-white">
+            <thead class="table-dark text-white">
+                <tr>
+                    <th scope="col" class="py-3">Date</th>
+                    <th scope="col" class="py-3">Heure</th>
+                    <th scope="col" class="py-3">Patient</th>
+                    <th scope="col" class="py-3">Médecin</th>
+                    <th scope="col" class="py-3">Statut</th>
+                    <th scope="col" class="py-3 text-end">Actions</th>
+                </tr>
+            </thead>
+<tbody>
+    {% for rdv in rdvs %}
+    <tr>
+        <td class="fw-bold">{{ rdv.date|date:"d/m/Y" }}</td>
+        
+        <td><span class="badge bg-light text-dark border">{{ rdv.heure|time:"H:i" }}</span></td>
+        
+        <td>
+            <div class="d-flex align-items-center">
+                <div class="ms-2">
+                    <p class="fw-bold mb-0">
+                        {{ rdv.patient.user.last_name|default:"Inconnu" }} {{ rdv.patient.user.first_name }}
+                    </p>
+                </div>
+            </div>
+        </td>
+
+        <td>
+            <span class="text-primary fw-bold">
+                Dr. {{ rdv.docteur.user.last_name|default:"Non assigné" }}
+            </span>
+        </td>
+
+        <td>
+            {% if rdv.statut == 'CONFIRME' %}
+                <span class="badge bg-success rounded-pill">Confirmé</span>
+            {% elif rdv.statut == 'ANNULE' %}
+                <span class="badge bg-danger rounded-pill">Annulé</span>
+            {% else %}
+                <span class="badge bg-warning text-dark rounded-pill">En attente</span>
+            {% endif %}
+        </td>
+
+        <td class="text-end">
+            <div class="d-flex justify-content-end gap-2">
+                
+                {% if rdv.statut != 'CONFIRME' %}
+                <form action="#" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success" title="Confirmer">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </form>
+                {% endif %}
+
+                <form action="#" method="post" 
+                      onsubmit="return confirm('Voulez-vous vraiment supprimer ce rendez-vous ?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </form>
+
+                <a href="#" class="btn btn-sm btn-primary" title="Modifier">
+                    <i class="fas fa-pen"></i>
+                </a>
+            </div>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6" class="text-center py-5 text-muted">
+            <i class="fas fa-calendar-times fa-3x mb-3"></i>
+            <p>Aucun rendez-vous trouvé pour ces critères.</p>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

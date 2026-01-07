@@ -51,12 +51,16 @@ class RDV(models.Model):
     date_creation = models.DateTimeField(auto_now_add=True)
 
     # --- VALIDATION LOGIQUE (Pour afficher un beau message d'erreur) ---
-    def clean(self):
-        # On appelle la validation parent
+def clean(self):
         super().clean()
         
-        # Vérification : Est-ce que ce patient a déjà un RDV à cette date et heure ?
-        # .exclude(pk=self.pk) est CRUCIAL : il permet de modifier un RDV existant sans qu'il se bloque lui-même.
+        # --- LIGNE CRUCIALE A AJOUTER ---
+        # Si le patient n'est pas encore assigné (cas du formulaire), on saute la vérif
+        if self.patient_id is None:
+            return 
+        # --------------------------------
+
+        # Votre logique de conflit existante
         conflit = RDV.objects.filter(
             patient=self.patient, 
             date=self.date, 
@@ -64,8 +68,7 @@ class RDV(models.Model):
         ).exclude(pk=self.pk)
 
         if conflit.exists():
-            raise ValidationError(f"Le patient {self.patient.user.last_name} a déjà un rendez-vous prévu ce jour-là à cette heure.")
-
+            raise ValidationError("Rendez-vous déjà existant.")
 class Meta:
         verbose_name = "Rendez-vous"
         verbose_name_plural = "Rendez-vous"
