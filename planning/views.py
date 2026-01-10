@@ -2,10 +2,11 @@ from django.views.generic import CreateView, ListView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from .models import RDV
 from accounts.models import Patient, Docteur
-from .forms import RDVRequestForm
+from .forms import RDVRequestForm, RendezVousForm
+from django.views import View
 from django.shortcuts import render
 from django.db.models import Q
 import datetime
@@ -73,4 +74,35 @@ class RDVListView(LoginRequiredMixin, ListView):
         
         return context
 
+class RDVUpdateView(LoginRequiredMixin, UpdateView):
+    model = RDV
+    form_class = RendezVousForm  # Utilise le formulaire complet
+    template_name = 'planning/form_rendez_vous.html' # On va créer ce fichier juste après
+    success_url = reverse_lazy('liste_rendez_vous')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titre'] = "Modifier le Rendez-vous"
+        return context
+
+# 2. ACTIONS RAPIDES (Confirmer / Supprimer)
+class RDVStatutView(LoginRequiredMixin, View):
+    """
+    Gère les actions rapides via bouton :
+    - CONFIRME : Passe le statut à confirmé.
+    - ANNULE : Supprime le rendez-vous de la BDD.
+    """
+    def post(self, request, pk, statut_code):
+        rdv = get_object_or_404(RDV, pk=pk)
+        
+        if statut_code == 'ANNULE':
+            # Option choisie : Suppression définitive
+            rdv.delete()
+            messages.warning(request, "Le rendez-vous a été annulé et supprimé.")
+        
+        elif statut_code == 'CONFIRME':
+            rdv.statut = 'CONFIRME'
+            rdv.save()
+            messages.success(request, "Le rendez-vous a été confirmé.")
+            
+        return redirect('liste_rendez_vous')

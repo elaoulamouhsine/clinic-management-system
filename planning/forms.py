@@ -29,15 +29,12 @@ class RDVRequestForm(forms.ModelForm):
 class RendezVousForm(forms.ModelForm):
     class Meta:
         model = RDV
-        # On inclut les champs nécessaires
         fields = ['patient', 'docteur', 'date', 'heure', 'motif', 'statut']
-        
-        # Widgets pour un affichage joli (Calendrier et Horloge)
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'heure': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
-            'patient': forms.Select(attrs={'class': 'form-control'}),
-            'docteur': forms.Select(attrs={'class': 'form-control'}),
+            'patient': forms.Select(attrs={'class': 'form-select'}),
+            'docteur': forms.Select(attrs={'class': 'form-select'}),
             'motif': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'statut': forms.Select(attrs={'class': 'form-control'}),
+            'statut': forms.Select(attrs={'class': 'form-select'}),
         }

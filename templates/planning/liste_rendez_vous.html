@@ -100,30 +100,30 @@
         </td>
 
         <td class="text-end">
-            <div class="d-flex justify-content-end gap-2">
-                
-                {% if rdv.statut != 'CONFIRME' %}
-                <form action="#" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-success" title="Confirmer">
-                        <i class="fas fa-check"></i>
-                    </button>
-                </form>
-                {% endif %}
+    <div class="d-flex justify-content-end gap-2">
+        
+        {% if rdv.statut != 'CONFIRME' %}
+        <form action="{% url 'changer_statut_rdv' rdv.id 'CONFIRME' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-success" title="Confirmer">
+                <i class="fas fa-check"></i>
+            </button>
+        </form>
+        {% endif %}
 
-                <form action="#" method="post" 
-                      onsubmit="return confirm('Voulez-vous vraiment supprimer ce rendez-vous ?');">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </form>
+        <form action="{% url 'changer_statut_rdv' rdv.id 'ANNULE' %}" method="post" 
+              onsubmit="return confirm('Voulez-vous vraiment annuler et SUPPRIMER ce rendez-vous ?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-danger" title="Annuler et Supprimer">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </form>
 
-                <a href="#" class="btn btn-sm btn-primary" title="Modifier">
-                    <i class="fas fa-pen"></i>
-                </a>
-            </div>
-        </td>
+        <a href="{% url 'modifier_rdv' rdv.id %}" class="btn btn-sm btn-primary" title="Modifier">
+            <i class="fas fa-pen"></i>
+        </a>
+    </div>
+</td>
     </tr>
     {% empty %}
     <tr>
