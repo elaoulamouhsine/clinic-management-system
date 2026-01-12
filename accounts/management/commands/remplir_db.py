@@ -5,28 +5,30 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.utils import IntegrityError
 
-# Import des modèles
+# Import des modèles existants
 from accounts.models import User, Docteur, Patient
 from planning.models import RDV
-
-# Imports précis depuis votre dossiers/models.py
 from dossiers.models import (
     Mutuelle, Vaccin, Allergie, Maladie, 
     Vaccination, AntecedentAllergie, AntecedentMaladie
 )
 
+# --- NOUVEAUX IMPORTS ---
+from consultations.models import Acte, Consultation, Ordonnance
+from facturation.models import Facture
+
 fake = Faker('fr_FR')
 
 class Command(BaseCommand):
-    help = "Remplit la base de données avec des fausses données de test complètes"
+    help = "Remplit la base de données avec des fausses données de test complètes (y compris Consultations et Factures)"
 
     def handle(self, *args, **kwargs):
         self.stdout.write("🔨 Début de la génération des données...")
 
         # ==========================================
-        # 1. CATALOGUES (App DOSSIERS)
+        # 1. CATALOGUES (Dossiers & Consultations)
         # ==========================================
-        self.stdout.write("- Création des catalogues médicaux...")
+        self.stdout.write("- Création des catalogues (Médicaux & Actes)...")
         
         # --- Mutuelles ---
         mutuelles_data = [
@@ -61,6 +63,21 @@ class Command(BaseCommand):
         ]
         for m in maladies_liste:
             Maladie.objects.get_or_create(nom_mal=m)
+
+        # --- NOUVEAU : Actes Médicaux ---
+        actes_data = [
+            ('Consultation Généraliste', 200.00),
+            ('Consultation Spécialiste', 300.00),
+            ('Échographie', 400.00),
+            ('Electrocardiogramme (ECG)', 250.00),
+            ('Certificat médical', 100.00),
+            ('Petite chirurgie', 600.00),
+            ('Vaccination (Acte)', 150.00)
+        ]
+        list_actes = []
+        for nom, tarif in actes_data:
+            act, _ = Acte.objects.get_or_create(nom=nom, defaults={'tarif': tarif})
+            list_actes.append(act)
 
 
         # ==========================================
@@ -110,59 +127,45 @@ class Command(BaseCommand):
         # ==========================================
         self.stdout.write("- Remplissage des dossiers médicaux...")
 
-        # Récupération des catalogues
         all_vaccins = list(Vaccin.objects.all())
         all_allergies = list(Allergie.objects.all())
         all_maladies = list(Maladie.objects.all())
-        
-        # Choix exacts de votre modèle AntecedentAllergie
         intensite_choices = ['Faible', 'Moyenne', 'Grave']
 
         for patient in list_patients:
-            
-            # --- A. Vaccinations ---
+            # A. Vaccinations
             nb_vac = random.randint(0, 3)
             mes_vaccins = random.sample(all_vaccins, nb_vac) if len(all_vaccins) >= nb_vac else all_vaccins
-            
             for v in mes_vaccins:
-                date_inj = fake.date_between(start_date='-10y', end_date='today')
                 Vaccination.objects.get_or_create(
-                    patient=patient,
-                    vaccin=v,
+                    patient=patient, vaccin=v,
                     defaults={
-                        'date_injection': date_inj,
-                        'observation': fake.sentence(nb_words=5) # Champ observation rempli
+                        'date_injection': fake.date_between(start_date='-10y', end_date='today'),
+                        'observation': fake.sentence(nb_words=5)
                     }
                 )
 
-            # --- B. Allergies (Antécédents) ---
+            # B. Allergies
             nb_alg = random.randint(0, 2)
             mes_allergies = random.sample(all_allergies, nb_alg) if len(all_allergies) >= nb_alg else all_allergies
-
             for a in mes_allergies:
                 AntecedentAllergie.objects.get_or_create(
-                    patient=patient,
-                    allergie=a,
+                    patient=patient, allergie=a,
                     defaults={
-                        'intensite': random.choice(intensite_choices), # Champ intensité correct
-                        'commentaire': fake.text(max_nb_chars=50)      # Champ commentaire rempli
+                        'intensite': random.choice(intensite_choices),
+                        'commentaire': fake.text(max_nb_chars=50)
                     }
                 )
 
-            # --- C. Maladies (Antécédents) ---
+            # C. Maladies
             nb_mal = random.randint(0, 2)
             mes_maladies = random.sample(all_maladies, nb_mal) if len(all_maladies) >= nb_mal else all_maladies
-
             for m in mes_maladies:
-                date_diag = fake.date_between(start_date='-5y', end_date='-1y')
-                is_chronic = random.choice([True, False])
-                
                 AntecedentMaladie.objects.get_or_create(
-                    patient=patient,
-                    maladie=m,
+                    patient=patient, maladie=m,
                     defaults={
-                        'date_diagnostic': date_diag,
-                        'est_chronique': is_chronic # Champ est_chronique rempli
+                        'date_diagnostic': fake.date_between(start_date='-5y', end_date='-1y'),
+                        'est_chronique': random.choice([True, False])
                     }
                 )
 
@@ -171,16 +174,17 @@ class Command(BaseCommand):
         # ==========================================
         self.stdout.write("- Génération des Rendez-vous...")
         
-        # On vide les RDV pour éviter les conflits et repartir sur un planning propre
+        # Le cascade delete sur RDV va aussi supprimer les Consultations et Factures liées
         RDV.objects.all().delete() 
 
         compteur_rdv = 0
-        for _ in range(60): # Tentative de créer 60 RDV
+        list_rdv_created = []
+
+        for _ in range(60): 
             patient = random.choice(list_patients)
             docteur = random.choice(list_docteurs)
             
-            # Génération d'un créneau
-            jours_delta = random.randint(-10, 10)
+            jours_delta = random.randint(-20, 10) # J'ai élargi un peu le passé
             date_rdv = timezone.now().date() + timedelta(days=jours_delta)
             heure_rdv = f"{random.randint(9, 17)}:00"
 
@@ -189,10 +193,7 @@ class Command(BaseCommand):
             elif jours_delta == 0: status = 'CONFIRME'
 
             try:
-                # On tente de créer le RDV
-                # Le système de contrainte unique de la BDD peut lever une erreur
-                # si le créneau est déjà pris, donc on utilise un try/except
-                RDV.objects.create(
+                rdv = RDV.objects.create(
                     docteur=docteur,
                     patient=patient,
                     date=date_rdv,
@@ -201,8 +202,59 @@ class Command(BaseCommand):
                     statut=status
                 )
                 compteur_rdv += 1
+                list_rdv_created.append(rdv)
             except IntegrityError:
-                # Si conflit (Docteur ou Patient déjà occupé), on ignore simplement ce RDV
                 continue
 
-        self.stdout.write(self.style.SUCCESS(f"✅ Base de données remplie avec succès ! ({compteur_rdv} RDV créés)"))
+        # ==========================================
+        # 5. CONSULTATIONS & FACTURATION
+        # ==========================================
+        self.stdout.write("- Génération des Consultations, Ordonnances et Factures...")
+
+        compteur_cons = 0
+        compteur_fact = 0
+
+        # On ne crée des consultations que pour les RDV 'TERMINE' (ceux passés)
+        rdvs_termines = [r for r in list_rdv_created if r.statut == 'TERMINE']
+
+        for rdv in rdvs_termines:
+            # 1. Créer la Consultation
+            # On simule un texte de diagnostic et des commentaires
+            consultation = Consultation.objects.create(
+                rdv=rdv,
+                diagnostic=f"Patient se plaint de : {fake.sentence()}\nObservation : {fake.text(max_nb_chars=100)}",
+                commentaires=fake.text(max_nb_chars=50),
+                est_revision=random.choice([True, False]) if random.random() > 0.8 else False
+            )
+
+            # 2. Lier des Actes (Many-to-Many)
+            # On prend 1 ou 2 actes au hasard dans le catalogue
+            nb_actes = random.randint(1, 2)
+            actes_choisis = random.sample(list_actes, nb_actes)
+            consultation.actes.set(actes_choisis)
+            
+            # 3. Créer une Ordonnance (80% de chance)
+            if random.random() < 0.8:
+                Ordonnance.objects.create(
+                    consultation=consultation,
+                    traitement=f"- Doliprane 1000mg (3x/jour)\n- {fake.word().capitalize()} 500mg (1x/jour le soir)\n- Repos pendant 3 jours."
+                )
+
+            # 4. Créer la Facture
+            # Le montant se calcule tout seul grâce au signal/save() du modèle Facture 
+            # en se basant sur les actes ajoutés ci-dessus.
+            statut_pay = random.choice(['PAYE', 'NON_PAYE', 'EN_ATTENTE'])
+            
+            Facture.objects.create(
+                consultation=consultation,
+                statut_paiement=statut_pay
+                # Pas besoin de passer 'montant', le modèle le calculera
+            )
+            
+            compteur_cons += 1
+            compteur_fact += 1
+
+        self.stdout.write(self.style.SUCCESS(f"✅ Terminé !"))
+        self.stdout.write(f"   - {compteur_rdv} RDV créés")
+        self.stdout.write(f"   - {compteur_cons} Consultations générées (pour les RDV terminés)")
+        self.stdout.write(f"   - {compteur_fact} Factures générées")

@@ -6,6 +6,7 @@ from django.contrib import messages
 # Import des modèles
 from accounts.models import Patient, User
 from planning.models import RDV
+from consultations.models import Consultation
 # Les modèles dossiers sont déjà liés via les related_name, pas besoin de les importer pour les requêtes
 
 class PatientDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
@@ -57,7 +58,15 @@ class PatientDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         patient = self.object # L'objet patient récupéré par l'URL (pk)
+        consultations = Consultation.objects.filter(
+            rdv__patient=patient
+        ).select_related(
+            'rdv', 
+            'rdv__docteur__user', 
+            'ordonnance'
+        ).order_by('-rdv__date')
 
+        context['consultations'] = consultations
         # 1. Récupération des données médicales via les "related_name" définis dans vos models
         # Ces noms viennent de votre fichier dossiers/models.py
         context['vaccinations'] = patient.vaccinations.select_related('vaccin').order_by('-date_injection')

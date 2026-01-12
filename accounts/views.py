@@ -6,6 +6,10 @@ from .forms import UserRegistrationForm, PatientRegistrationForm
 from django.contrib import messages  
 from django.utils import timezone
 from planning.models import RDV
+from consultations.models import Consultation
+from facturation.models import Facture  # <--- AJOUTEZ L'IMPORT
+from django.db.models import Sum
+
 
 class DoctorRequiredMixin(UserPassesTestMixin):
     def test_func(self):
@@ -64,6 +68,8 @@ class DispatchDashboardView(LoginRequiredMixin, View):
 # 2. LES DASHBOARDS (TemplateView)
 # TemplateView est parfait quand on veut juste afficher un HTML.
 
+# accounts/views.py
+
 class DoctorDashboardView(LoginRequiredMixin, DoctorRequiredMixin, TemplateView):
     template_name = 'accounts/doctor_dashboard.html'
 
@@ -72,18 +78,26 @@ class DoctorDashboardView(LoginRequiredMixin, DoctorRequiredMixin, TemplateView)
         today = timezone.now().date()
         user = self.request.user
 
-        # Récupérer les RDV de CE médecin pour AUJOURD'HUI
-        # Note : on utilise docteur__user pour faire le lien inverse
+        # 1. RDV Actifs (Salle d'attente)
         rdvs_du_jour = RDV.objects.filter(
             docteur__user=user, 
-            date=today
+            date=today,
+            statut__in=['CONFIRME', 'EN_ATTENTE']
         ).order_by('heure')
 
-        # Statistiques simples
-        context['rdvs'] = rdvs_du_jour
-        context['count_today'] = rdvs_du_jour.count()
-        context['count_waiting'] = rdvs_du_jour.filter(statut='EN_ATTENTE').count()
-        
+        # 2. Calcul du Chiffre d'Affaires du jour
+        # On regarde les factures liées aux consultations de CE médecin pour AUJOURD'HUI
+        revenu = Facture.objects.filter(
+            consultation__rdv__docteur__user=user,
+            date_facture=today
+        ).aggregate(Sum('montant'))['montant__sum']
+
+        # Context
+        context['rdvs_du_jour'] = rdvs_du_jour
+        context['count_today'] = RDV.objects.filter(docteur__user=user, date=today).count()
+        context['count_waiting'] = rdvs_du_jour.count()
+        context['revenu_jour'] = revenu if revenu else 0 # Gère le cas où c'est None
+
         return context
 
 
@@ -94,23 +108,41 @@ class PatientDashboardView(LoginRequiredMixin, PatientRequiredMixin, TemplateVie
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        today = timezone.now().date()
 
-        # 1. Tous les RDV du patient (Passés et Futurs)
-        mes_rdvs = RDV.objects.filter(patient__user=user).order_by('-date', '-heure')
-        
-        # 2. Le PROCHAIN RDV (Le premier qui est dans le futur ou aujourd'hui)
-        prochain_rdv = mes_rdvs.filter(
-            date__gte=today, 
+        # 1. Les RDV Futurs (En attente ou Confirmés)
+        # On remplace 'prochain_rdv' (unique) par une liste 'rdvs_futurs'
+        # pour correspondre à la boucle du nouveau template.
+        rdvs_futurs = RDV.objects.filter(
+            patient__user=user,
             statut__in=['EN_ATTENTE', 'CONFIRME']
-        ).order_by('date', 'heure').first()
+        ).order_by('date', 'heure')
 
-        context['historique_rdvs'] = mes_rdvs
-        context['prochain_rdv'] = prochain_rdv
+        # 2. L'Historique des Consultations
+        # C'est ici qu'on va chercher les ordonnances.
+        # select_related est crucial pour éviter de faire 50 requêtes SQL
+        consultations = Consultation.objects.filter(
+            rdv__patient__user=user
+        ).select_related(
+            'rdv', 
+            'rdv__docteur', 
+            'rdv__docteur__user', 
+            'ordonnance' # Pour savoir s'il y a une ordonnance sans refaire une requête
+        ).order_by('-rdv__date')
+
+        mes_factures = Facture.objects.filter(
+            consultation__rdv__patient__user=user
+        ).order_by('-date_facture')
+
+        context['mes_factures'] = mes_factures
+
+        # On passe les variables exactes attendues par le template
+        context['rdvs_futurs'] = rdvs_futurs
+        context['consultations'] = consultations
         
-        # Infos patient (simulées ici, à récupérer via user.patient si besoin)
-        context['patient_info'] = user.patient_profile if hasattr(user, 'patient_profile') else None
-
+        # Info patient (optionnel si vous l'affichez ailleurs)
+        if hasattr(user, 'profile_patient'):
+             context['patient_info'] = user.profile_patient
+        
         return context
 
 

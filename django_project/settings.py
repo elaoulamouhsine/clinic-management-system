@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'dossiers',
     'planning',
     'consultations',
+    'facturation',
 ]
 
 MIDDLEWARE = [

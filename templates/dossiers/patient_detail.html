@@ -19,7 +19,6 @@
                 <div class="col-md-9 p-4">
                     <div class="d-flex justify-content-between align-items-start mb-4">
                         <h4 class="fw-bold text-muted"><i class="fas fa-id-card me-2"></i>Fiche Administrative</h4>
-                        <a href="#" class="btn btn-outline-primary btn-sm rounded-pill"><i class="fas fa-pen me-2"></i>Modifier</a>
                     </div>
                     
                     <div class="row g-4">
@@ -134,43 +133,117 @@
     </div>
 
     <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold mb-0 text-secondary"><i class="fas fa-history me-2"></i>Historique des Consultations</h5>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="ps-4">Date</th>
-                        <th>Médecin</th>
-                        <th>Motif</th>
-                        <th>Statut</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for rdv in historique_rdv %}
-                    <tr>
-                        <td class="ps-4 fw-bold">{{ rdv.date|date:"d M Y" }} <small class="text-muted ms-1">{{ rdv.heure|time:"H:i" }}</small></td>
-                        <td>Dr. {{ rdv.docteur.user.last_name }}</td>
-                        <td class="text-muted">{{ rdv.motif|default:"Check-up standard"|truncatechars:30 }}</td>
-                        <td>
-                            {% if rdv.statut == 'TERMINE' %}
-                                <span class="badge bg-success bg-opacity-10 text-success">Terminé</span>
-                            {% elif rdv.statut == 'ANNULE' %}
-                                <span class="badge bg-danger bg-opacity-10 text-danger">Annulé</span>
-                            {% else %}
-                                <span class="badge bg-warning text-dark">{{ rdv.get_statut_display }}</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center py-4 text-muted">Aucun historique de rendez-vous.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0 text-secondary">
+            <i class="fas fa-history me-2"></i>Historique Médical & Consultations
+        </h5>
     </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-uppercase small text-muted">
+                <tr>
+                    <th class="ps-4">Date</th>
+                    <th>Médecin</th>
+                    <th>Diagnostic / Motif</th>
+                    <th class="text-end pe-4">Ordonnance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for consult in consultations %}
+                <tr>
+                    <td class="ps-4">
+                        <div class="fw-bold text-dark">{{ consult.rdv.date|date:"d M Y" }}</div>
+                        <small class="text-muted">Terminé</small>
+                    </td>
+
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-2 text-primary">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            <div>
+                                <span class="fw-bold d-block text-dark">Dr. {{ consult.rdv.docteur.user.last_name }}</span>
+                                <small class="text-muted">{{ consult.rdv.docteur.specialite }}</small>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class="text-muted small" style="max-width: 250px;">
+                            {% if consult.diagnostic %}
+                                <strong class="text-dark">Diag:</strong> {{ consult.diagnostic|truncatewords:8 }}
+                            {% else %}
+                                <span class="fst-italic">Motif: {{ consult.rdv.motif|default:"Non spécifié" }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <td class="text-end pe-4">
+                        {% if consult.ordonnance %}
+                            <button type="button" 
+                                    class="btn btn-sm btn-outline-primary rounded-pill" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#ordModal-{{ consult.id }}">
+                                <i class="fas fa-file-prescription me-1"></i> Voir
+                            </button>
+
+                            <div class="modal fade" id="ordModal-{{ consult.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-light">
+                                            <h5 class="modal-title text-primary fw-bold">
+                                                <i class="fas fa-file-prescription me-2"></i>Ordonnance
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body text-start">
+                                            <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                                                <div>
+                                                    <small class="text-muted d-block uppercase">Patient</small>
+                                                    <strong>{{ patient.user.last_name }} {{ patient.user.first_name }}</strong>
+                                                </div>
+                                                <div class="text-end">
+                                                    <small class="text-muted d-block uppercase">Date</small>
+                                                    <strong>{{ consult.ordonnance.date_ordonnance|date:"d/m/Y" }}</strong>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="p-3 bg-light rounded border">
+                                                <strong class="d-block mb-2 text-dark">Traitement prescrit :</strong>
+                                                <div class="text-muted">
+                                                    {{ consult.ordonnance.traitement|linebreaksbr }}
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3 text-end">
+                                                <small class="text-muted">Prescrit par Dr. {{ consult.rdv.docteur.user.last_name }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fermer</button>
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+                                                <i class="fas fa-print me-1"></i> Imprimer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">Aucune ordonnance</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-5 text-muted">
+                        <i class="fas fa-folder-open fa-2x mb-2 opacity-25"></i>
+                        <p class="mb-0">Aucune consultation enregistrée pour ce patient.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 </div>
 {% endblock %}
