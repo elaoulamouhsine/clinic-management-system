@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Gestion de la Facturation</h2>
+        
+        <form class="d-flex" method="GET">
+            <input class="form-control me-2" type="search" name="q" placeholder="Nom du patient..." value="{{ request.GET.q }}">
+            <button class="btn btn-outline-primary" type="submit">Chercher</button>
+            <a href="{% url 'liste_factures' %}" class="btn btn-link">Reset</a>
+        </form>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#ID</th>
+                        <th>Date</th>
+                        <th>Patient</th>
+                        <th>Médecin</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fac in factures %}
+                    <tr>
+                        <td class="fw-bold">#{{ fac.id }}</td>
+                        <td>{{ fac.date_facture|date:"d/m/Y" }}</td>
+                        <td>
+                            <div class="fw-bold">{{ fac.consultation.rdv.patient.user.last_name }} {{ fac.consultation.rdv.patient.user.first_name }}</div>
+                            <small class="text-muted">CIN: {{ fac.consultation.rdv.patient.cin }}</small>
+                        </td>
+                        <td>Dr. {{ fac.consultation.rdv.docteur.user.last_name }}</td>
+                        <td class="fw-bold">{{ fac.montant }} DHS</td>
+                        <td>
+                            {% if fac.statut_paiement == 'PAYE' %}
+                                <span class="badge bg-success rounded-pill">Payée</span>
+                            {% elif fac.statut_paiement == 'NON_PAYE' %}
+                                <span class="badge bg-danger rounded-pill">Non Payée</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark rounded-pill">En attente</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if fac.statut_paiement != 'PAYE' %}
+                                <form action="{% url 'payer_facture' fac.id %}" method="post" class="d-inline" onsubmit="return confirm('Confirmer le paiement de {{ fac.montant }} DHS ?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm" title="Encaisser">
+                                        <i class="fas fa-money-bill-wave me-1"></i> Encaisser
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                                    <i class="fas fa-print"></i> Reçu
+                                </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">Aucune facture trouvée.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

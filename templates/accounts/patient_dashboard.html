@@ -7,7 +7,7 @@
     <h2 class="fw-bold text-dark mb-0">
       Bonjour, {{ user.first_name|default:user.username }}
     </h2>
-    <p class="text-muted">Bienvenue sur votre espace personnel MediCab.</p>
+    <p class="text-muted">Bienvenue sur votre espace personnel.</p>
   </div>
   <a href="{% url 'request_rdv' %}" class="btn btn-primary btn-lg rounded-pill shadow-sm hover-card">
     <i class="fas fa-calendar-plus me-2"></i>Prendre un Rendez-vous
@@ -334,27 +334,9 @@
             {% endif %}
           </li>
         </ul>
-        <div class="d-grid mt-3">
-          <button class="btn btn-outline-secondary btn-sm rounded-pill">
-            Modifier mes coordonnées
-          </button>
-        </div>
         {% else %}
         <p class="text-danger small">Profil patient non complété.</p>
         {% endif %}
-      </div>
-    </div>
-
-    <div class="card border-0 shadow-sm rounded-4 bg-light">
-      <div class="card-body p-4 text-center">
-        <i class="fas fa-headset fa-3x text-primary mb-3 opacity-50"></i>
-        <h5 class="fw-bold">Besoin d'assistance ?</h5>
-        <p class="text-muted small mb-3">
-          Notre secrétariat est disponible pour répondre à vos questions.
-        </p>
-        <a href="tel:+212522000000" class="btn btn-primary rounded-pill px-4">
-          <i class="fas fa-phone-alt me-2"></i>Appeler le cabinet
-        </a>
       </div>
     </div>
   </div>

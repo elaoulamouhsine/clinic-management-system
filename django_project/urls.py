@@ -24,4 +24,5 @@ urlpatterns = [
     path('dossier/<int:pk>/', PatientDetailView.as_view(), name='patient_detail'),
     path('rdv/', include('planning.urls')),
     path('consultations/', include('consultations.urls')),
+    path('facturation/', include('facturation.urls')),
 ]
