@@ -100,9 +100,6 @@
                                 <span>{{ user.last_name }} {{ user.first_name }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 animate__animated animate__fadeIn">
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2 text-muted"></i>Mon Profil</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2 text-muted"></i>Paramètres</a></li>
-                                <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form action="{% url 'logout' %}" method="post" class="d-inline">
                                         {% csrf_token %}

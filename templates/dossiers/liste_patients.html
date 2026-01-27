@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 fw-bold text-primary">
+                <i class="fas fa-users me-2"></i>Liste des Patients
+            </h5>
+            <div>
+                <a href="{% url 'liste_patients' %}" class="btn btn-outline-secondary btn-sm me-2">
+                    <i class="fas fa-sync-alt"></i> Réinitialiser
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <form method="get" id="filterForm">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light table-group-divider">
+                            <tr class="align-middle">
+                                <th scope="col" class="ps-4" style="min-width: 200px;">
+                                    <label class="small text-muted fw-bold mb-1">Patient</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                        <input type="text" name="search_nom" class="form-control border-start-0" 
+                                               placeholder="Nom ou Prénom..." 
+                                               value="{{ current_search_nom }}"
+                                               onchange="document.getElementById('filterForm').submit()"> 
+                                               </div>
+                                </th>
+
+                                <th scope="col" style="min-width: 150px;">
+                                    <label class="small text-muted fw-bold mb-1">Allergies</label>
+                                    <select name="search_allergie" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit()">
+                                        <option value="">Toutes</option>
+                                        {% for alrg in all_allergies %}
+                                            <option value="{{ alrg.id }}" {% if current_search_allergie == alrg.id %}selected{% endif %}>
+                                                {{ alrg.nom_alrg }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </th>
+
+                                <th scope="col" style="min-width: 150px;">
+                                    <label class="small text-muted fw-bold mb-1">Maladies</label>
+                                    <select name="search_maladie" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit()">
+                                        <option value="">Toutes</option>
+                                        {% for mal in all_maladies %}
+                                            <option value="{{ mal.id }}" {% if current_search_maladie == mal.id %}selected{% endif %}>
+                                                {{ mal.nom_mal }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </th>
+
+                                <th scope="col" style="min-width: 150px;">
+                                    <label class="small text-muted fw-bold mb-1">Vaccins</label>
+                                    <select name="search_vaccin" class="form-select form-select-sm" onchange="document.getElementById('filterForm').submit()">
+                                        <option value="">Tous</option>
+                                        {% for vac in all_vaccins %}
+                                            <option value="{{ vac.id }}" {% if current_search_vaccin == vac.id %}selected{% endif %}>
+                                                {{ vac.nom_vac }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </th>
+
+                                <th scope="col" class="text-end pe-4" style="width: 100px;">
+                                    <label class="d-block small text-muted fw-bold mb-1">&nbsp;</label>
+                                    <button type="submit" class="btn btn-sm btn-primary w-100">
+                                        <i class="fas fa-filter"></i> Filtrer
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        
+                        <tbody>
+                            {% for patient in patients %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                            <span class="fw-bold">{{ patient.user.last_name|first|upper }}</span>
+                                        </div>
+                                        <div>
+                                            <a href="{% url 'patient_detail' patient.pk %}" class="fw-bold text-dark text-decoration-none">
+                                                {{ patient.user.last_name|upper }} {{ patient.user.first_name|title }}
+                                            </a>
+                                            {% if patient.mutuelle %}
+                                                <div class="small text-muted">{{ patient.mutuelle.nom_orga }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    {% for ant in patient.antecedents_allergies.all %}
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 mb-1">
+                                            {{ ant.allergie.nom_alrg }}
+                                        </span>
+                                    {% empty %}
+                                        <span class="text-muted small">-</span>
+                                    {% endfor %}
+                                </td>
+
+                                <td>
+                                    {% for ant in patient.antecedents_maladies.all %}
+                                        <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25 mb-1">
+                                            {{ ant.maladie.nom_mal }}
+                                        </span>
+                                    {% empty %}
+                                        <span class="text-muted small">-</span>
+                                    {% endfor %}
+                                </td>
+
+                                <td>
+                                    {% for vax in patient.vaccinations.all %}
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 mb-1">
+                                            {{ vax.vaccin.nom_vac }}
+                                        </span>
+                                    {% empty %}
+                                        <span class="text-muted small">-</span>
+                                    {% endfor %}
+                                </td>
+                                
+                                <td class="text-end pe-4">
+                                    <a href="{% url 'patient_detail' patient.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-folder-open"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="fas fa-search fa-3x mb-3 opacity-50"></i>
+                                        <p>Aucun résultat ne correspond à votre recherche.</p>
+                                        <a href="{% url 'liste_patients' %}" class="btn btn-link">Effacer les filtres</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 from django.shortcuts import redirect
-from django.views.generic import DetailView
+from django.views.generic import DetailView, ListView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils import timezone
 from django.contrib import messages
@@ -7,8 +7,10 @@ from django.contrib import messages
 from accounts.models import Patient, User
 from planning.models import RDV
 from consultations.models import Consultation
+from django.db.models import Q
 # Les modèles dossiers sont déjà liés via les related_name, pas besoin de les importer pour les requêtes
 
+from .models import Allergie, Maladie, Vaccin
 class PatientDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Patient
     template_name = 'dossiers/patient_detail.html'
@@ -81,4 +83,56 @@ class PatientDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         born = patient.date_naissance
         context['age'] = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
 
+        return context
+class PatientListView(LoginRequiredMixin, ListView):
+    model = Patient
+    template_name = 'dossiers/liste_patients.html'
+    context_object_name = 'patients'
+    
+    def get_queryset(self):
+        # 1. On récupère tous les patients de base
+        queryset = super().get_queryset().order_by('user__last_name')
+        
+        # 2. On récupère les paramètres GET (ce que l'utilisateur a tapé/choisi)
+        search_nom = self.request.GET.get('search_nom')
+        search_allergie = self.request.GET.get('search_allergie')
+        search_maladie = self.request.GET.get('search_maladie')
+        search_vaccin = self.request.GET.get('search_vaccin')
+
+        # 3. Application des filtres si nécessaire
+        
+        # Filtre par Nom ou Prénom
+        if search_nom:
+            queryset = queryset.filter(
+                Q(user__last_name__icontains=search_nom) | 
+                Q(user__first_name__icontains=search_nom)
+            )
+
+        # Filtre par Allergie (via la table intermédiaire)
+        if search_allergie:
+            queryset = queryset.filter(antecedents_allergies__allergie__id=search_allergie)
+
+        # Filtre par Maladie
+        if search_maladie:
+            queryset = queryset.filter(antecedents_maladies__maladie__id=search_maladie)
+
+        # Filtre par Vaccin
+        if search_vaccin:
+            queryset = queryset.filter(vaccinations__vaccin__id=search_vaccin)
+            
+        return queryset.distinct() # .distinct() est important pour éviter les doublons après un join
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 4. On envoie les listes complètes pour remplir les <select> HTML
+        context['all_allergies'] = Allergie.objects.all().order_by('nom_alrg')
+        context['all_maladies'] = Maladie.objects.all().order_by('nom_mal')
+        context['all_vaccins'] = Vaccin.objects.all().order_by('nom_vac')
+        
+        # On renvoie aussi les valeurs actuelles pour garder le select sélectionné après recherche
+        context['current_search_nom'] = self.request.GET.get('search_nom', '')
+        context['current_search_allergie'] = int(self.request.GET.get('search_allergie')) if self.request.GET.get('search_allergie') else ''
+        context['current_search_maladie'] = int(self.request.GET.get('search_maladie')) if self.request.GET.get('search_maladie') else ''
+        context['current_search_vaccin'] = int(self.request.GET.get('search_vaccin')) if self.request.GET.get('search_vaccin') else ''
+        
         return context
