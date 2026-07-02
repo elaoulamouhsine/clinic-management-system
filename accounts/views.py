@@ -79,7 +79,7 @@ class DoctorDashboardView(LoginRequiredMixin, DoctorRequiredMixin, TemplateView)
 
         revenu = Facture.objects.filter(
             consultation__rdv__docteur__user=user,
-            date_facture=today
+            consultation__rdv__date=today
         ).aggregate(Sum('montant'))['montant__sum']
 
         context['rdvs_du_jour'] = rdvs_du_jour

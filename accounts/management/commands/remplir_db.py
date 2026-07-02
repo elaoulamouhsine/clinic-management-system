@@ -88,6 +88,15 @@ class Command(BaseCommand):
             else:
                 list_docteurs.append(Docteur.objects.get(user__username=username))
 
+        # La secrétaire n'a pas de profil métier dédié : un User avec le rôle SECRETAIRE suffit.
+        if not User.objects.filter(username='secretaire').exists():
+            User.objects.create_user(
+                username='secretaire', password='123', email=fake.email(),
+                first_name=fake.first_name(), last_name=fake.last_name(),
+                role=User.Role.SECRETAIRE
+            )
+            self.stdout.write("- Compte secrétaire créé (login: secretaire / mot de passe: 123)")
+
         list_patients = []
         for i in range(20):
             username = f"patient_{i}"
@@ -164,8 +173,12 @@ class Command(BaseCommand):
             heure_rdv = f"{random.randint(9, 17)}:00"
 
             status = 'EN_ATTENTE'
-            if jours_delta < 0: status = 'TERMINE'
-            elif jours_delta == 0: status = 'CONFIRME'
+            if jours_delta < 0:
+                status = 'TERMINE'
+            elif jours_delta == 0:
+                # Une partie des RDV du jour sont déjà passés (traités et facturés),
+                # le reste est encore en salle d'attente.
+                status = random.choice(['TERMINE', 'CONFIRME', 'CONFIRME'])
 
             try:
                 rdv = RDV.objects.create(
