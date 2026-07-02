@@ -11,12 +11,10 @@ from .views import (
 )
 
 urlpatterns = [
-    # LoginView est déjà une CBV fournie par Django. On précise juste le template.
     path('', HomeView.as_view(), name='home'),
     path('login/', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 
-    # Nos Vues Personnalisées
     path('dashboard/', DispatchDashboardView.as_view(), name='dispatch_dashboard'),
     path('medecin/', DoctorDashboardView.as_view(), name='doctor_dashboard'),
     path('secretaire/', SecretaryDashboardView.as_view(), name='secretary_dashboard'),

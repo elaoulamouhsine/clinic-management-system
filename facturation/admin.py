@@ -6,9 +6,8 @@ class FactureAdmin(admin.ModelAdmin):
     list_display = ('id', 'date_facture', 'get_patient', 'montant', 'statut_paiement')
     list_filter = ('statut_paiement', 'date_facture')
     search_fields = ('consultation__rdv__patient__user__last_name',)
-    
-    # Permet de modifier le statut paiement directement depuis la liste
-    list_editable = ('statut_paiement',) 
+
+    list_editable = ('statut_paiement',)
 
     def get_patient(self, obj):
         return obj.consultation.rdv.patient

@@ -19,7 +19,6 @@ class RDVRequestForm(forms.ModelForm):
             'motif': 'Motif de la consultation'
         }
 
-    # Validation personnalisée : Empêcher les dates passées
     def clean_date(self):
         date = self.cleaned_data['date']
         if date < timezone.now().date():

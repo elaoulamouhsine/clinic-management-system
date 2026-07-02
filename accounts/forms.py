@@ -1,6 +1,6 @@
 from django import forms
-from .models import User, Patient 
-from dossiers.models import Mutuelle # Si vous voulez un menu déroulant pour la mutuelle
+from .models import User, Patient
+from dossiers.models import Mutuelle
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(
@@ -25,7 +25,7 @@ class UserRegistrationForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
         }
         help_texts = {
-            'username': '', # Une chaîne vide efface le texte d'aide
+            'username': '',
         }
 
 class PatientRegistrationForm(forms.ModelForm):

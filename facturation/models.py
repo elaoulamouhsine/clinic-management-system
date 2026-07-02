@@ -12,8 +12,6 @@ class Facture(models.Model):
         ('EN_ATTENTE', 'En attente'),
     ]
 
-    # Relation "Générer" 1..1 avec Consultation
-    # On utilise 'consultations.Consultation' pour le lien inter-application
     consultation = models.OneToOneField(
         'consultations.Consultation',
         on_delete=models.CASCADE,
@@ -22,16 +20,15 @@ class Facture(models.Model):
     )
 
     date_facture = models.DateField(auto_now_add=True, verbose_name="Date de facturation")
-    
-    # On préfère DecimalField à Float pour éviter les erreurs d'arrondis monétaires
+
     montant = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
+        max_digits=10,
+        decimal_places=2,
         verbose_name="Montant Total (DH)",
         blank=True, null=True,
         help_text="Laisser vide pour calculer automatiquement selon les actes."
     )
-    
+
     statut_paiement = models.CharField(
         max_length=20,
         choices=STATUT_CHOICES,
@@ -45,11 +42,9 @@ class Facture(models.Model):
         si l'utilisateur ne l'a pas saisi.
         """
         if not self.montant and self.consultation_id:
-            # On récupère tous les actes liés à la consultation
-            # Note: cela suppose que la consultation a déjà des actes enregistrés
             total = self.consultation.actes.aggregate(total=Sum('tarif'))['total']
             self.montant = total if total else 0.00
-            
+
         super().save(*args, **kwargs)
 
     def __str__(self):

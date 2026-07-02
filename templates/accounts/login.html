@@ -1,66 +1,137 @@
 {% extends 'base.html' %}
-
-{% block title %}Connexion - Espace Sécurisé{% endblock %}
+{% block title %}Connexion — Cabinet Médical{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Surcharge le background juste pour cette page */
     body {
-        background: linear-gradient(135deg, #0d6efd 0%, #00d2ff 100%);
-        height: 100vh;
+        background-color: var(--teal-900) !important;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px) !important;
+        background-size: 44px 44px !important;
     }
-    .login-card {
-        border-radius: 20px;
+
+    /* Navbar becomes transparent on this page */
+    .navbar {
+        background: rgba(12, 74, 110, 0.5) !important;
+        border-bottom-color: rgba(255,255,255,0.1) !important;
+        backdrop-filter: blur(8px);
+    }
+
+    .navbar-brand,
+    .navbar-brand::before { color: rgba(255,255,255,0.9) !important; }
+
+    .login-panel {
+        background: var(--white);
+        border-radius: 14px;
         overflow: hidden;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 20px 48px rgba(0,0,0,0.25);
     }
+
     .login-header {
-        background: #fff;
-        padding: 2rem;
+        padding: 2rem 2rem 1.5rem;
+        border-bottom: 1px solid var(--border);
         text-align: center;
     }
+
+    .login-logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        background: var(--teal-100);
+        color: var(--teal-900);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .login-title {
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 300;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        margin-bottom: 0.25rem;
+    }
+
+    .login-sub {
+        font-size: 0.8rem;
+        color: var(--slate);
+    }
+
+    .login-body { padding: 1.75rem 2rem 2rem; }
+
+    .form-control:focus {
+        border-color: var(--teal-700);
+        box-shadow: 0 0 0 3px rgba(12,74,110,0.12);
+    }
+
+    .btn-login {
+        background: var(--teal-900);
+        border: none;
+        border-radius: 6px;
+        color: var(--white);
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.75rem;
+        width: 100%;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: background 0.18s, transform 0.15s;
+    }
+
+    .btn-login:hover {
+        background: var(--teal-700);
+        transform: translateY(-1px);
+    }
+
+    footer { border-top-color: rgba(255,255,255,0.1) !important; background: transparent !important; color: rgba(255,255,255,0.35) !important; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center h-100">
-    <div class="col-md-5 col-lg-4">
-        <div class="card login-card border-0">
-            <div class="login-header">
-                <div class="mb-3">
-                    <i class="fa-solid fa-user-doctor fa-3x text-primary"></i>
+<div class="d-flex justify-content-center py-5">
+    <div class="login-panel">
+        <div class="login-header">
+            <div class="login-logo">
+                <i class="fa-solid fa-user-doctor"></i>
+            </div>
+            <h4 class="login-title">Espace Sécurisé</h4>
+            <p class="login-sub">Connectez-vous pour accéder à votre espace</p>
+        </div>
+
+        <div class="login-body">
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger d-flex align-items-center mb-4" role="alert"
+                         style="font-size:0.875rem; border-radius:8px; border:none;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Identifiants incorrects — veuillez réessayer.
+                    </div>
+                {% endif %}
+
+                <div class="form-floating mb-3">
+                    <input type="text" name="username" class="form-control"
+                           id="floatingInput" placeholder="Nom d'utilisateur" required>
+                    <label for="floatingInput">Nom d'utilisateur</label>
                 </div>
-                <h4 class="fw-bold text-dark">Espace Sécurisé</h4>
-                <p class="text-muted small">Connectez-vous pour accéder à votre espace</p>
-            </div>
-            
-            <div class="card-body p-4 bg-white">
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    {% if form.errors %}
-                        <div class="alert alert-danger d-flex align-items-center" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i> Identifiants incorrects
-                        </div>
-                    {% endif %}
 
-                    <div class="form-floating mb-3">
-                        <input type="text" name="username" class="form-control" id="floatingInput" placeholder="Nom d'utilisateur" required>
-                        <label for="floatingInput">Nom d'utilisateur</label>
-                    </div>
+                <div class="form-floating mb-4">
+                    <input type="password" name="password" class="form-control"
+                           id="floatingPassword" placeholder="Mot de passe" required>
+                    <label for="floatingPassword">Mot de passe</label>
+                </div>
 
-                    <div class="form-floating mb-4">
-                        <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Mot de passe" required>
-                        <label for="floatingPassword">Mot de passe</label>
-                    </div>
-
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
-                            Se connecter
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <button type="submit" class="btn-login">
+                    Se connecter <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+            </form>
         </div>
     </div>
 </div>

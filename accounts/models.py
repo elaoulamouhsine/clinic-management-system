@@ -5,25 +5,22 @@ class User(AbstractUser):
     """
     Modèle d'utilisateur unifié gérant l'authentification pour tous les acteurs.
     Remplace le modèle par défaut de Django.
-    
-    Les champs 'first_name' (Prénom) et 'last_name' (Nom) sont déjà inclus 
+
+    Les champs 'first_name' (Prénom) et 'last_name' (Nom) sont déjà inclus
     dans AbstractUser et seront utilisés pour tous les acteurs (Patient, Médecin, etc.).
     """
     class Role(models.TextChoices):
-        ADMIN = "ADMIN", "Administrateur"         # Superuser / Admin technique
-        SECRETAIRE = "SECRETAIRE", "Secrétaire"   # Gestion administrative [cite: 33, 34]
-        DOCTEUR = "DOCTEUR", "Docteur"            # Gestion médicale [cite: 32]
-        PATIENT = "PATIENT", "Patient"            # Bénéficiaire des soins [cite: 35]
+        ADMIN = "ADMIN", "Administrateur"
+        SECRETAIRE = "SECRETAIRE", "Secrétaire"
+        DOCTEUR = "DOCTEUR", "Docteur"
+        PATIENT = "PATIENT", "Patient"
 
     role = models.CharField(
-        max_length=20, 
-        choices=Role.choices, 
+        max_length=20,
+        choices=Role.choices,
         default=Role.PATIENT,
         verbose_name="Rôle utilisateur"
     )
-
-    # Vous pouvez ajouter ici une photo de profil commune si nécessaire
-    # photo = models.ImageField(upload_to='avatars/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.get_full_name()} ({self.get_role_display()})"
@@ -35,17 +32,16 @@ class Docteur(models.Model):
     [cite_start]Source: Dictionnaire de données [cite: 67]
     """
     user = models.OneToOneField(
-        User, 
-        on_delete=models.CASCADE, 
+        User,
+        on_delete=models.CASCADE,
         related_name='profile_docteur',
         limit_choices_to={'role': User.Role.DOCTEUR}
     )
-    
-    # Spécifique au médecin selon le MCD
+
     specialite = models.CharField(
-        max_length=50, 
+        max_length=50,
         verbose_name="Spécialité médicale",
-        default="Généraliste" # Valeur par défaut utile
+        default="Généraliste"
     )
 
     class Meta:
@@ -62,39 +58,32 @@ class Patient(models.Model):
     [cite_start]Contient les données administratives requises par le RG1 [cite: 42] [cite_start]et le dictionnaire[cite: 62].
     """
     user = models.OneToOneField(
-        User, 
-        on_delete=models.CASCADE, 
+        User,
+        on_delete=models.CASCADE,
         related_name='profile_patient',
         limit_choices_to={'role': User.Role.PATIENT}
     )
 
-    # [cite_start]RG1 : Le patient est identifié de manière unique (ici par CIN en plus de l'ID) [cite: 42]
-    # [cite_start]Dictionnaire des données : CIN Pat (AN, 20, Unique) [cite: 62]
     cin = models.CharField(
-        max_length=20, 
-        unique=True, 
+        max_length=20,
+        unique=True,
         verbose_name="Numéro CIN",
         help_text="Carte d'Identité Nationale"
     )
 
-    # [cite_start]Dictionnaire des données : Adresse Pat (AN, 255) [cite: 67]
     adresse = models.TextField(
         verbose_name="Adresse complète",
         blank=True
     )
 
-    # [cite_start]Dictionnaire des données : Date Naiss Pat (Date) [cite: 67]
     date_naissance = models.DateField(
         verbose_name="Date de naissance"
     )
 
-    # [cite_start]RG2 : Un patient peut être affilié à une mutuelle [cite: 43]
-    # Utilisation d'une "Lazy Reference" (chaîne de caractères) pour pointer vers l'app 'dossiers'
-    # Cela évite l'erreur "ImportError: cannot import name..."
     mutuelle = models.ForeignKey(
-        'dossiers.Mutuelle', 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        'dossiers.Mutuelle',
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
         related_name='affilies',
         verbose_name="Organisme de Mutuelle"

@@ -15,7 +15,7 @@ class OrdonnanceInline(admin.StackedInline):
     Permet de voir/modifier l'ordonnance directement dans la page de la consultation.
     """
     model = Ordonnance
-    extra = 0 # Pas de ligne vide par défaut
+    extra = 0
     can_delete = True
 
 @admin.register(Consultation)
@@ -23,13 +23,11 @@ class ConsultationAdmin(admin.ModelAdmin):
     list_display = ('date_consultation', 'get_patient', 'get_medecin', 'est_revision', 'tarif_total')
     list_filter = ('date_consultation', 'est_revision')
     search_fields = ('rdv__patient__user__last_name', 'rdv__patient__user__first_name', 'diagnostic')
-    autocomplete_fields = ['rdv'] # Utile si vous avez beaucoup de RDV
-    
-    # On ajoute l'ordonnance en bas de la fiche consultation
+    autocomplete_fields = ['rdv']
+
     inlines = [OrdonnanceInline]
-    
-    # Configuration du champ ManyToMany (Actes) pour une sélection plus facile
-    filter_horizontal = ('actes',) 
+
+    filter_horizontal = ('actes',)
 
     def get_patient(self, obj):
         return f"{obj.rdv.patient.user.last_name} {obj.rdv.patient.user.first_name}"
@@ -50,7 +48,7 @@ class ConsultationAdmin(admin.ModelAdmin):
 class OrdonnanceAdmin(admin.ModelAdmin):
     list_display = ('id', 'get_consultation_str', 'date_ordonnance')
     search_fields = ('traitement',)
-    
+
     def get_consultation_str(self, obj):
         return str(obj.consultation)
     get_consultation_str.short_description = 'Consultation Associée'

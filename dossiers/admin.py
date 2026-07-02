@@ -1,7 +1,6 @@
 from django.contrib import admin
 from .models import Mutuelle, Vaccin, Allergie, Maladie
 
-# Configuration des listes de référence (Catalogues)
 
 @admin.register(Mutuelle)
 class MutuelleAdmin(admin.ModelAdmin):
@@ -19,6 +18,3 @@ class AllergieAdmin(admin.ModelAdmin):
 @admin.register(Maladie)
 class MaladieAdmin(admin.ModelAdmin):
     search_fields = ('nom_mal',)
-
-# Note : On n'enregistre PAS Vaccination ou Antecedent ici.
-# On va les mettre directement dans la fiche du Patient (voir étape 2).

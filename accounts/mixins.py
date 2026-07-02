@@ -1,4 +1,3 @@
-# accounts/mixins.py
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import redirect
 from django.contrib import messages

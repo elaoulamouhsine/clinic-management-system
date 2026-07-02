@@ -5,19 +5,18 @@ from django.contrib import messages
 from django.db.models import Q
 from .models import Facture
 
+
 class FactureListView(LoginRequiredMixin, ListView):
     model = Facture
     template_name = 'facturation/liste_factures.html'
     context_object_name = 'factures'
 
     def get_queryset(self):
-        # On récupère les factures
         queryset = Facture.objects.select_related(
-            'consultation__rdv__patient__user', 
+            'consultation__rdv__patient__user',
             'consultation__rdv__docteur__user'
         ).all()
-        
-        # Filtre de recherche (optionnel, par nom de patient)
+
         q = self.request.GET.get('q')
         if q:
             queryset = queryset.filter(
@@ -25,8 +24,8 @@ class FactureListView(LoginRequiredMixin, ListView):
                 Q(consultation__rdv__patient__user__first_name__icontains=q)
             )
 
-        # TRI : On met les "NON_PAYE" et "EN_ATTENTE" en premier, puis par date récente
         return queryset.order_by('statut_paiement', '-date_facture')
+
 
 class PayerFactureView(LoginRequiredMixin, View):
     """ Action rapide pour marquer une facture comme payée """
