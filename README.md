@@ -1,6 +1,6 @@
 # Projet Systèmes d’Information & Bases de données
 
-Application web de gestion d'un cabinet médical, développée avec **Django 5** et **PostgreSQL**.
+Application web de gestion d'un cabinet médical.
 Elle gère les patients, les rendez-vous, les consultations, les ordonnances, les dossiers
 médicaux et la facturation, avec des espaces distincts selon le rôle de l'utilisateur.
 
@@ -22,9 +22,9 @@ médicaux et la facturation, avec des espaces distincts selon le rôle de l'util
 
 ## Architecture technique
 
-- **Backend** : Django 5.0 (vues basées sur des classes, templates Django côté serveur).
-- **Base de données** : PostgreSQL 16.
-- **Frontend** : templates Django + Bootstrap 5 (pas de framework JavaScript).
+- **Backend** : Django.
+- **Base de données** : PostgreSQL.
+- **Frontend** : templates Django + Bootstrap.
 - **Conteneurisation** : Docker + Docker Compose.
 
 ### Applications Django
@@ -32,7 +32,7 @@ médicaux et la facturation, avec des espaces distincts selon le rôle de l'util
 | Application     | Rôle                                                                    |
 |-----------------|-------------------------------------------------------------------------|
 | `accounts`      | Utilisateur personnalisé, rôles, profils Docteur/Patient, tableaux de bord |
-| `planning`      | Rendez-vous (RDV)                                                        |
+| `planning`      | Rendez-vous                                                        |
 | `consultations` | Consultations, actes médicaux, ordonnances                              |
 | `facturation`   | Factures                                                                |
 | `dossiers`      | Dossier médical : mutuelles, vaccins, allergies, maladies, antécédents  |
@@ -179,29 +179,6 @@ erDiagram
         bool est_chronique
     }
 ```
-
-**Notes de lecture**
-
-- **`USER` et les rôles** : l'authentification est unifiée dans une seule entité `USER`
-  (champ `role`). Les rôles **Administrateur** et **Secrétaire** n'ont pas d'entité métier
-  dédiée ; **Docteur** et **Patient** sont spécialisés par les entités `DOCTEUR` et
-  `PATIENT`, reliées à `USER` par une relation **1‑à‑1**.
-- **Chaîne clinique** : le cœur du modèle est une succession de relations **1‑à‑1** :
-  `RDV → CONSULTATION → FACTURE`, avec `ORDONNANCE` optionnelle rattachée à la consultation.
-- **`CONSULTATION ⟷ ACTE`** : relation **plusieurs‑à‑plusieurs**. Le montant d'une `FACTURE`
-  est calculé à partir de la somme des tarifs des actes de sa consultation.
-- **Révision de consultation** : relation **réflexive** sur `CONSULTATION`
-  (`consultation_origine`) reliant une consultation de révision à sa consultation d'origine.
-- **Dossier médical** : `VACCINATION`, `ANTECEDENT_ALLERGIE` et `ANTECEDENT_MALADIE` sont des
-  **entités associatives** matérialisant les liens plusieurs‑à‑plusieurs entre `PATIENT` et
-  respectivement `VACCIN`, `ALLERGIE` et `MALADIE`.
-- **Mutuelle** : un patient est affilié à **au plus une** mutuelle (lien facultatif) ; une
-  mutuelle regroupe plusieurs affiliés.
-
-**Domaines de valeurs** — `USER.role` : `ADMIN` · `SECRETAIRE` · `DOCTEUR` · `PATIENT` ·
-`RDV.statut` : `EN_ATTENTE` · `CONFIRME` · `ANNULE` · `TERMINE` · `FACTURE.statut_paiement` :
-`NON_PAYE` · `PAYE` · `EN_ATTENTE` · `ANTECEDENT_ALLERGIE.intensite` : `Faible` · `Moyenne` · `Grave`.
-
 ## Prérequis
 
 - [Docker](https://www.docker.com/) et Docker Compose installés.
@@ -252,24 +229,6 @@ docker compose exec web python manage.py createsuperuser
 > À chaque démarrage du conteneur, le script `remplir_db` **supprime et régénère**
 > les rendez-vous, consultations et factures. Les données de test ne sont donc pas
 > persistantes entre deux redémarrages.
-
----
-
-## Commandes utiles
-
-Toutes les commandes `manage.py` s'exécutent dans le conteneur `web` :
-
-```bash
-# Régénérer les données de test
-docker compose exec web python manage.py remplir_db
-
-# Créer un super-utilisateur
-docker compose exec web python manage.py createsuperuser
-
-# Arrêter les conteneurs
-docker compose down
-
-```
 
 ---
 
