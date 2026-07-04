@@ -190,8 +190,8 @@ erDiagram
 1. **Cloner le dépôt**
 
    ```bash
-   git clone <url-du-depot>
-   cd Projet-Si
+   git clone https://github.com/elaoulamouhsine/clinic-management-system.git
+   cd clinic-management-system.git
    ```
 
 2. **Construire et démarrer les conteneurs**
