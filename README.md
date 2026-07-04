@@ -191,7 +191,7 @@ erDiagram
 
    ```bash
    git clone https://github.com/elaoulamouhsine/clinic-management-system.git
-   cd clinic-management-system.git
+   cd clinic-management-system
    ```
 
 2. **Construire et démarrer les conteneurs**
@@ -235,7 +235,7 @@ docker compose exec web python manage.py createsuperuser
 ## Structure du projet
 
 ```
-Projet-Si/
+clinic-management-system/
 ├── accounts/          # Utilisateurs, rôles, tableaux de bord, seed (remplir_db)
 ├── planning/          # Rendez-vous
 ├── consultations/     # Consultations, actes, ordonnances
